@@ -13,34 +13,32 @@ const readline = require("node:readline");
 const copyDir = async (pathFrom, pathTo) => {
   await rm(pathTo, { force: true, recursive: true });
   await mkdir(pathTo, { recursive: true });
-  const copyFiles = async (pathFrom) => {
-    try {
-      const files = await readdir(pathFrom, {
-        withFileTypes: true,
-      });
-      for (const file of files) {
-        if (file.isFile()) {
-          try {
-            await copyFile(
-              path.join(pathFrom, file.name),
-              path.join(pathTo, file.name)
-            );
-          } catch {
-            console.log("The file could not be copied");
-          }
-        } else {
-          copyFiles(path.join(pathFrom, file.name));
+
+  try {
+    const files = await readdir(pathFrom, {
+      withFileTypes: true,
+    });
+    for (const file of files) {
+      if (file.isFile()) {
+        try {
+          await copyFile(
+            path.join(pathFrom, file.name),
+            path.join(pathTo, file.name)
+          );
+        } catch {
+          console.log("The file could not be copied");
         }
+      } else {
+        copyDir(path.join(pathFrom, file.name), path.join(pathTo, file.name));
       }
-    } catch (err) {
-      console.error(err);
     }
-  };
-  copyFiles(pathFrom);
+  } catch (err) {
+    console.error(err);
+  }
 };
 
 const mergeStyles = async (pathFrom, pathTo) => {
-  const fileOutput = fs.createWriteStream(path.join(pathTo, "bundle.css"));
+  const fileOutput = fs.createWriteStream(path.join(pathTo, "style.css"));
 
   try {
     const files = await readdir(pathFrom, {
@@ -63,22 +61,9 @@ const mergeStyles = async (pathFrom, pathTo) => {
   }
 };
 
-const read = async (replacements, componentsPath, fileIndex) => {
-  replacements.forEach(async (repl) => {
-    try {
-      const newres = await readFile(path.join(componentsPath, repl + ".html"));
-      console.log("доп кусок");
-      await appendFile(fileIndex, newres + "\n");
-      // fileOutput.write(newres + "\n");
-    } catch (err) {
-      console.log(err);
-    }
-  });
-};
-
 const buildPage = async () => {
   const pathDist = path.join(__dirname, "project-dist");
-  await copyDir(path.join(__dirname, "assets"), pathDist);
+  await copyDir(path.join(__dirname, "assets"), path.join(pathDist, "assets"));
   mergeStyles(path.join(__dirname, "styles"), pathDist);
   const componentsPath = path.join(__dirname, "components");
   const fileIndex = path.join(pathDist, "index.html");
