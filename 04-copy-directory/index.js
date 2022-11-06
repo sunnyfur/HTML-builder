@@ -1,7 +1,5 @@
 const path = require("path");
-const { rm, mkdir } = require("node:fs/promises");
-const { copyFile, constants } = require("node:fs/promises");
-const { readdir } = require("fs/promises");
+const { rm, mkdir, readdir, copyFile } = require("node:fs/promises");
 
 const copyDir = async (pathFrom, pathTo) => {
   await rm(pathTo, { force: true, recursive: true });
